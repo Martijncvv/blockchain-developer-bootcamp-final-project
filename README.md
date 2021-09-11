@@ -20,7 +20,7 @@ For every dollar donated, 1 $OCU gets minted.
 - Token-distributer SMBs have to register and should get permission from the foundation to distribute minted $OCU tokens to wallets of individuals.
 - Token-receiver SMBs have to register and should be able to swap $OCU tokens for stable coins at the foundation wallet; The $OCU token gets burned.
 
-## Extra features
+## Additional features
 - NFTs can be used to give wallets certain permissions and can be used for gamification;
 instead of spending the $OCU tokens, individuals can buy NFTs to show their hard work for the environment. SMBs can give discounts to these NFT holders.
 - The individual can see which company donated the specific $OCU tokens; marketing.
