@@ -1,5 +1,5 @@
 ## Open CleanUp
-### An open ecosystem to incentivize individuals to clean the environment. 
+### An open ecosystem to incentivize individuals to clean the environment
 
 
 ## Problem
