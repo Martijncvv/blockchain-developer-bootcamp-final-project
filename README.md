@@ -23,6 +23,7 @@ For every dollar donated, 1 $OCU gets minted.
 ## Additional features
 - NFTs can be used to give wallets certain permissions and can be used for gamification;
 instead of spending the $OCU tokens, individuals can buy NFTs to show their hard work for the environment. SMBs can give discounts to these NFT holders.
+- Data about the tokens; nr of tokens donated, distributed, spent and burned. And by which enterprises, SMBs or individuals.
 - The individual can see which company donated the specific $OCU tokens; marketing.
 - The money donor can see what its donated money was used for.
 
