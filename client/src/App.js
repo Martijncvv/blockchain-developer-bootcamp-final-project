@@ -1,241 +1,182 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import { ethers } from "ethers";
-import OpenCleanup from "./contracts/OpenCleanUp.json";
-import { Button, Alert } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css";
+import Web3 from "web3-eth";
+// import { ethers } from "ethers";
+// import OpenCleanup from "./contracts/OpenCleanUp.json";
+// import "bootstrap/dist/css/bootstrap.min.css";
 
 // Needs to change to reflect current OpenCleanup address
-const contractAddress = "0x43160A85c8e5Ec58C7a5f6FA12295d252a916C74";
-
-let provider;
-let signer;
-let erc20;
-let noProviderAbort = true;
-
-// Ensures metamask or similar installed
-if (
-	typeof window.ethereum !== "undefined" ||
-	typeof window.web3 !== "undefined"
-) {
-	try {
-		// Ethers.js set up, gets data from MetaMask and blockchain
-		window.ethereum
-			.enable()
-			.then((provider = new ethers.providers.Web3Provider(window.ethereum)));
-		signer = provider.getSigner();
-		erc20 = new ethers.Contract(contractAddress, OpenCleanup.abi, signer);
-		noProviderAbort = false;
-	} catch (e) {
-		noProviderAbort = true;
-	}
-}
+const OCUContractAddress = "0x807C508C7D3620549A54eC19c45Cac2b75193a2f";
 
 function App() {
-	const [walAddress, setWalAddress] = useState("0x00");
-	const [pctBal, setPctBal] = useState(0);
-	const [ethBal, setEthBal] = useState(0);
-	const [coinSymbol, setCoinSymbol] = useState("Nil");
-	const [transAmount, setTransAmount] = useState("0");
-	const [pendingFrom, setPendingFrom] = useState("0x00");
-	const [pendingTo, setPendingTo] = useState("0x00");
-	const [pendingAmount, setPendingAmount] = useState("0");
-	const [isPending, setIsPending] = useState(false);
-	const [errMsg, setErrMsg] = useState("Transaction failed!");
-	const [isError, setIsError] = useState(false);
+	const [loaded, setLoaded] = useState(false);
+	const [openCleanUp, setOpenCleanUp] = useState(0);
+	const [accounts, setAccounts] = useState(0);
+	const [accountBalance, setAccountBalance] = useState(0);
+	const [totalSupply, setTotalSupply] = useState(0);
 
-	// Aborts app if metamask etc not present
-	if (noProviderAbort) {
-		return (
-			<div>
-				<h1>Error</h1>
-				<p>
-					<a href="https://metamask.io">Metamask</a> or equivalent required to
-					access this page.
-				</p>
-			</div>
-		);
-	}
+	useEffect(() => {
+		if (typeof web3 !== "undefined") {
+			window.web3 = new Web3(window.web3.currentProvider);
 
-	// Notification to user that transaction sent to blockchain
-	const PendingAlert = () => {
-		if (!isPending) return null;
-		return (
-			<Alert
-				key="pending"
-				variant="info"
-				style={{ position: "absolute", top: 0 }}
-			>
-				Blockchain event notification: transaction of {pendingAmount}
-				&#x39e; from <br />
-				{pendingFrom} <br /> to <br /> {pendingTo}.
-			</Alert>
-		);
-	};
-
-	// Notification to user of blockchain error
-	const ErrorAlert = () => {
-		if (!isError) return null;
-		return (
-			<Alert
-				key="error"
-				variant="danger"
-				style={{ position: "absolute", top: 0 }}
-			>
-				{errMsg}
-			</Alert>
-		);
-	};
-
-	// Sets current balance of PCT for user
-	signer
-		.getAddress()
-		.then((response) => {
-			setWalAddress(response);
-			return erc20.balanceOf(response);
-		})
-		.then((balance) => {
-			setPctBal(balance.toString());
-		});
-
-	// Sets current balance of Eth for user
-	signer
-		.getAddress()
-		.then((response) => {
-			return provider.getBalance(response);
-		})
-		.then((balance) => {
-			let formattedBalance = ethers.utils.formatUnits(balance, 18);
-			setEthBal(formattedBalance.toString());
-		});
-
-	// Sets symbol of ERC20 token (i.e. PCT)
-	async function getSymbol() {
-		let symbol = await erc20.symbol();
-		return symbol;
-	}
-	let symbol = getSymbol();
-	symbol.then((x) => setCoinSymbol(x.toString()));
-
-	// Interacts with smart contract to buy PCT
-	async function buyPCT() {
-		// Converts integer as Eth to Wei,
-		let amount = await ethers.utils.parseEther(transAmount.toString());
-		try {
-			await erc20.buyToken(transAmount, { value: amount });
-			// Listens for event on blockchain
-			await erc20.on("PCTBuyEvent", (from, to, amount) => {
-				setPendingFrom(from.toString());
-				setPendingTo(to.toString());
-				setPendingAmount(amount.toString());
-				setIsPending(true);
-			});
-		} catch (err) {
-			if (typeof err.data !== "undefined") {
-				setErrMsg("Error: " + err.data.message);
+			if (window.web3.currentProvider.isMetaMask === true) {
+				connectMetaMask();
+				connectToSelectedNetwork();
+			} else {
+				console.log("Please download MetaMask");
 			}
-			setIsError(true);
+		} else {
+			console.log("No web3 support found");
 		}
-	}
+	}, []);
 
-	// Interacts with smart contract to sell PCT
-	async function sellPCT() {
-		try {
-			await erc20.sellToken(transAmount);
-			// Listens for event on blockchain
-			await erc20.on("PCTSellEvent", (from, to, amount) => {
-				setPendingFrom(from.toString());
-				setPendingTo(to.toString());
-				setPendingAmount(amount.toString());
-				setIsPending(true);
+	useEffect(() => {
+		// Only get profile if we are completly loaded
+		if (loaded && accounts !== 0) {
+			// get user info
+			getTokenInfo();
+		} else {
+			// dirty trick to trigger reload if something went wrong
+			// setTimeout(setLoaded(true), 500);
+		}
+		// This here subscribes to changes on the loaded and accounts state
+	}, [loaded, accounts]);
+
+	function connectMetaMask() {
+		window.web3
+			.requestAccounts()
+			.then((result) => {
+				setAccounts(result);
+			})
+			.catch((error) => {
+				throw new Error(error);
 			});
-		} catch (err) {
-			if (typeof err.data !== "undefined") {
-				setErrMsg("Error: " + err.data.message);
-			}
-			setIsError(true);
-		}
 	}
 
-	// Sets state for value to be transacted
-	// Clears extant alerts
-	function valueChange(value) {
-		setTransAmount(value);
-		setIsPending(false);
-		setIsError(false);
+	async function connectToSelectedNetwork() {
+		// This will connect to the selected network inside MetaMask
+		const web3 = new Web3(Web3.givenProvider);
+		// Set the ABI of the Built contract so we can interact with it
+		const abi = await getABI();
+		// console.log(abi);
+
+		// Make a new instance of the contract by giving the address and abi
+		const openCleanUpContract = await new web3.Contract(
+			abi,
+			OCUContractAddress
+		);
+
+		// Set the state of the app by passing the contract so we can reach it from other places
+		setOpenCleanUp(openCleanUpContract);
+		console.log(openCleanUpContract);
+		setLoaded(true);
 	}
 
-	// Handles user buy form submit
-	const handleBuySubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		valueChange(e.target.buypct.value);
-		buyPCT();
-	};
+	// getABI loads the ABI of the contract
+	async function getABI() {
+		// DevToken.json should be placed inside the public folder so we can reach it
+		let ABI = "";
+		await fetch("./OpenCleanUp.json", {
+			headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				// We have a Response, make sure its 200 or throw an error
+				if (response.status === 200) {
+					// This is actually also a promise so we need to chain it to grab data
+					return response.json();
+				} else {
+					throw new Error("Error fetching ABI");
+				}
+			})
+			.then((data) => {
+				// We have the data now, set it using the state
+				ABI = data.abi;
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+		return ABI;
+	}
 
-	// Handles user sell form submit
-	const handleSellSubmit = (e: React.FormEvent) => {
-		e.preventDefault();
-		valueChange(e.target.sellpct.value);
-		sellPCT();
-	};
+	// getUserProfile will fetch account information from the block chain network
+	function getTokenInfo() {
+		// Let's grab the token total supply, the method is named the same as in the Solidity code, and add call() to execute it.
+		// We can also get the response using a callback. I do recommend this method most times as we dont know how long the executions can take.
+		call(openCleanUp.methods.totalSupply, setTotalSupply);
+		// balanceOf Requires input argument of the account to grab, so let's grab the first available account for now
+		call(openCleanUp.methods.balanceOf, setAccountBalance, accounts[0]);
+	}
+
+	// call takes in a function to execute and runs a given callback on the response
+	function call(func, callback, ...args) {
+		// Trigger the function with the arguments
+		func(...args)
+			.call()
+			.then((result) => {
+				// Apply given callback, this is our stateSetters
+				callback(result);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
+
+	function mint() {
+		openCleanUp.methods
+			.mint(1000)
+			.estimateGas({ from: accounts[0] })
+			.then((gas) => {
+				// We now have the gas amount, we can now send the transaction
+				openCleanUp.methods.mint(1000).send({
+					from: accounts[0],
+					gas: gas,
+				});
+
+				// Fake update of account by changing stake, Trigger a reload when transaction is done later
+				setAccountBalance(parseInt(accountBalance) + 1000);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
+
+	function mint() {
+		openCleanUp.methods
+			.mint(1000)
+			.estimateGas({ from: accounts[0] })
+			.then((gas) => {
+				// We now have the gas amount, we can now send the transaction
+				openCleanUp.methods.mint(1000).send({
+					from: accounts[0],
+					gas: gas,
+				});
+
+				// Fake update of account by changing stake, Trigger a reload when transaction is done later
+				setAccountBalance(parseInt(accountBalance) + 1000);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
 
 	return (
 		<div className="App">
-			<header className="App-header">
-				<ErrorAlert />
-				<PendingAlert />
+			{loaded && (
+				<header className="App-header">
+					<p>OpenCleanUp</p>
+					<p>Address: {accounts}</p>
+					<p>Account balance: {accountBalance}</p>
 
-				{/* <img
-					src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Ethereum-icon-purple.svg/512px-Ethereum-icon-purple.svg.png"
-					className="App-logo"
-					alt="Ethereum logo"
-				/> */}
+					<p>Total supply: {totalSupply}</p>
 
-				<h2>{coinSymbol}</h2>
-
-				<p>
-					User Wallet address: {walAddress}
-					<br />
-					Eth held: {ethBal}
-					<br />
-					OCU held: {pctBal}
-					<br />
-				</p>
-
-				<form onSubmit={handleBuySubmit}>
-					<p>
-						<label htmlFor="buypct">OCU to buy:</label>
-						<input
-							type="number"
-							step="1"
-							min="0"
-							id="buypct"
-							name="buypct"
-							onChange={(e) => valueChange(e.target.value)}
-							required
-							style={{ margin: "12px" }}
-						/>
-						<Button type="submit">Buy OCU</Button>
-					</p>
-				</form>
-
-				<form onSubmit={handleSellSubmit}>
-					<p>
-						<label htmlFor="sellpct">OCU to sell:</label>
-						<input
-							type="number"
-							step="1"
-							min="0"
-							id="sellpct"
-							name="sellpct"
-							onChange={(e) => valueChange(e.target.value)}
-							required
-							style={{ margin: "12px" }}
-						/>
-						<Button type="submit">Sell OCU</Button>
-					</p>
-				</form>
-			</header>
+					<button onClick={mint}>
+						<p>Mint</p>
+					</button>
+				</header>
+			)}
 		</div>
 	);
 }
