@@ -6,14 +6,23 @@ import Web3 from "web3-eth";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
 // Needs to change to reflect current OpenCleanup address
-const OCUContractAddress = "0x807C508C7D3620549A54eC19c45Cac2b75193a2f";
+const OCUContractAddress = "0x34b8DCf220b40cD5A6bd1EBDcC1D73FA5cB3a305";
 
 function App() {
-	const [loaded, setLoaded] = useState(false);
+	const [loaded, setLoaded] = useState(0);
 	const [openCleanUp, setOpenCleanUp] = useState(0);
 	const [accounts, setAccounts] = useState(0);
 	const [accountBalance, setAccountBalance] = useState(0);
+	const [accountRole, setAccountRole] = useState("None");
 	const [totalSupply, setTotalSupply] = useState(0);
+
+	const [mintInput, setMintInput] = useState(0);
+	const [burnInput, setBurnInput] = useState(0);
+
+	const [address, setAddress] = useState(0);
+	const [grantRoleType, setGrantRoleType] = useState(0);
+	const [revokeRoleType, setRevokeRoleType] = useState(0);
+	const [distributeAmount, setDistributeAmount] = useState(0);
 
 	useEffect(() => {
 		if (typeof web3 !== "undefined") {
@@ -33,14 +42,34 @@ function App() {
 	useEffect(() => {
 		// Only get profile if we are completly loaded
 		if (loaded && accounts !== 0) {
-			// get user info
+			let options = {
+				filter: {
+					address: [accounts[0]],
+				},
+			};
+
+			// Our contract has a field called events which has all Available events.
+			openCleanUp.events
+				.Mint(options)
+				// data is when
+				.on("data", (event) => console.log("Data: ", event))
+				.on("changed", (changed) => console.log("Changed: ", changed))
+				.on("error", (err) => console.log("Err: ", err))
+				.on("connected", (str) => console.log("Connected: ", str));
+
+			openCleanUp.events
+				.Burn(options)
+				// data is when
+				.on("data", (event) => console.log("Data: ", event))
+				.on("changed", (changed) => console.log("Changed: ", changed))
+				.on("error", (err) => console.log("Err: ", err))
+				.on("connected", (str) => console.log("Connected: ", str));
+
 			getTokenInfo();
-		} else {
-			// dirty trick to trigger reload if something went wrong
-			// setTimeout(setLoaded(true), 500);
+
+			console.log(openCleanUp);
 		}
-		// This here subscribes to changes on the loaded and accounts state
-	}, [loaded, accounts]);
+	}, [loaded, accounts, openCleanUp]);
 
 	function connectMetaMask() {
 		window.web3
@@ -54,7 +83,7 @@ function App() {
 	}
 
 	async function connectToSelectedNetwork() {
-		// This will connect to the selected network inside MetaMask
+		// Connect to the selected network inside MetaMask
 		const web3 = new Web3(Web3.givenProvider);
 		// Set the ABI of the Built contract so we can interact with it
 		const abi = await getABI();
@@ -68,7 +97,6 @@ function App() {
 
 		// Set the state of the app by passing the contract so we can reach it from other places
 		setOpenCleanUp(openCleanUpContract);
-		console.log(openCleanUpContract);
 		setLoaded(true);
 	}
 
@@ -126,36 +154,104 @@ function App() {
 
 	function mint() {
 		openCleanUp.methods
-			.mint(1000)
+			.mint(mintInput)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
 				// We now have the gas amount, we can now send the transaction
-				openCleanUp.methods.mint(1000).send({
+				openCleanUp.methods.mint(mintInput).send({
 					from: accounts[0],
 					gas: gas,
 				});
 
 				// Fake update of account by changing stake, Trigger a reload when transaction is done later
-				setAccountBalance(parseInt(accountBalance) + 1000);
+				// setAccountBalance(parseInt(accountBalance) + 1000);
 			})
 			.catch((error) => {
 				throw new Error(error);
 			});
 	}
 
-	function mint() {
+	function burn() {
 		openCleanUp.methods
-			.mint(1000)
+			.burn(burnInput)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
 				// We now have the gas amount, we can now send the transaction
-				openCleanUp.methods.mint(1000).send({
+				openCleanUp.methods.burn(burnInput).send({
+					from: accounts[0],
+					gas: gas,
+				});
+
+				// setAccountBalance(parseInt(accountBalance) - 1000);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
+
+	function roleOf(address) {
+		call(openCleanUp.methods.roleOf, setAccountRole, address);
+		switch (accountRole) {
+			case "0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72":
+				return "foundation";
+			case "0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962":
+				return "token distributer";
+			case "0x5256df45158a1b783d5d1b7eae366e43e8adc1ddfe02d99d60edbfba2f122ee1":
+				return "token receiver";
+			case "0x1b489cce9d784ec074d286492a1ccc9efab255c8a4e6b74d2406b5b7674c6e74":
+				return "none";
+		}
+	}
+
+	function grantRole() {
+		console.log(grantRoleType, address);
+		openCleanUp.methods
+			.grantRole(grantRoleType, address)
+			.estimateGas({ from: accounts[0] })
+			.then((gas) => {
+				// We now have the gas amount, we can now send the transaction
+				openCleanUp.methods.grantRole(grantRoleType, address).send({
 					from: accounts[0],
 					gas: gas,
 				});
 
 				// Fake update of account by changing stake, Trigger a reload when transaction is done later
-				setAccountBalance(parseInt(accountBalance) + 1000);
+				// setAccountBalance(parseInt(accountBalance) + 1000);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
+	function revokeRole() {
+		console.log(revokeRoleType, address);
+		openCleanUp.methods
+			.revokeRole(revokeRoleType, address)
+			.estimateGas({ from: accounts[0] })
+			.then((gas) => {
+				// We now have the gas amount, we can now send the transaction
+				openCleanUp.methods.revokeRole(revokeRoleType, address).send({
+					from: accounts[0],
+					gas: gas,
+				});
+
+				// Fake update of account by changing stake, Trigger a reload when transaction is done later
+				// setAccountBalance(parseInt(accountBalance) + 1000);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
+
+	function distribute() {
+		openCleanUp.methods
+			.distribute(address, distributeAmount)
+			.estimateGas({ from: accounts[0] })
+			.then((gas) => {
+				// We now have the gas amount, we can now send the transaction
+				openCleanUp.methods.distribute(address, distributeAmount).send({
+					from: accounts[0],
+					gas: gas,
+				});
 			})
 			.catch((error) => {
 				throw new Error(error);
@@ -164,19 +260,171 @@ function App() {
 
 	return (
 		<div className="App">
-			{loaded && (
-				<header className="App-header">
-					<p>OpenCleanUp</p>
-					<p>Address: {accounts}</p>
-					<p>Account balance: {accountBalance}</p>
+			<header className="App-header">
+				{loaded && (
+					<div>
+						<p>OpenCleanUp</p>
+						<p>Address: {accounts}</p>
+						<p>Account balance: {accountBalance}</p>
+						<p>Account role: {roleOf(accounts[0])}</p>
 
-					<p>Total supply: {totalSupply}</p>
+						<p>Total supply: {totalSupply}</p>
+					</div>
+				)}
+				{loaded && roleOf(accounts[0]) == "token distributer" && (
+					<div>
+						<label>
+							Address
+							<input
+								type="text"
+								id="Address"
+								onChange={(event) => setAddress(event.target.value)}
+							></input>
+						</label>
+						<label>
+							Amount
+							<input
+								type="number"
+								id="number"
+								onChange={(event) => setDistributeAmount(event.target.value)}
+							></input>
+						</label>
+						<button onClick={distribute}>
+							<p>Distribute</p>
+						</button>
+					</div>
+				)}
 
-					<button onClick={mint}>
-						<p>Mint</p>
-					</button>
-				</header>
-			)}
+				{loaded && roleOf(accounts[0]) == "foundation" && (
+					<div>
+						<div>
+							<input
+								type="number"
+								id="mint"
+								onChange={(event) => setMintInput(event.target.value)}
+							></input>
+							<button onClick={mint}>
+								<p>Mint</p>
+							</button>
+						</div>
+						<div>
+							<input
+								type="number"
+								id="burn"
+								onChange={(event) => setBurnInput(event.target.value)}
+							></input>
+							<button onClick={burn}>
+								<p>Burn</p>
+							</button>
+						</div>
+						<div>
+							<label>
+								Address
+								<input
+									type="text"
+									id="roleAddress"
+									onChange={(event) => setAddress(event.target.value)}
+								></input>
+							</label>
+							<br></br>
+
+							<div>
+								<label>
+									<input
+										type="radio"
+										value="Foundation"
+										name="grantRole"
+										onClick={() =>
+											setGrantRoleType(
+												"0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72"
+											)
+										}
+									></input>
+									foundation
+								</label>
+								<label>
+									<input
+										type="radio"
+										value="token distributer"
+										name="grantRole"
+										onClick={() =>
+											setGrantRoleType(
+												"0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962"
+											)
+										}
+									></input>{" "}
+									token distributer
+								</label>
+								<label>
+									<input
+										type="radio"
+										value="token receiver"
+										name="grantRole"
+										onClick={() =>
+											setGrantRoleType(
+												"0x5256df45158a1b783d5d1b7eae366e43e8adc1ddfe02d99d60edbfba2f122ee1"
+											)
+										}
+									></input>
+									token receiver
+								</label>
+							</div>
+
+							<button onClick={grantRole}>
+								<p>Grant role</p>
+							</button>
+						</div>
+						<div>
+							<br></br>
+							<div>
+								<label>
+									<input
+										type="radio"
+										value="Foundation"
+										name="revokeRole"
+										onClick={() =>
+											setRevokeRoleType(
+												"0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72"
+											)
+										}
+									></input>{" "}
+									foundation
+								</label>
+								<label>
+									<input
+										type="radio"
+										value="token distributer"
+										name="revokeRole"
+										onClick={() =>
+											setRevokeRoleType(
+												"0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962"
+											)
+										}
+									></input>{" "}
+									token distributer
+								</label>
+								<label>
+									<input
+										type="radio"
+										value="token receiver"
+										name="revokeRole"
+										onClick={() =>
+											setRevokeRoleType(
+												"0x5256df45158a1b783d5d1b7eae366e43e8adc1ddfe02d99d60edbfba2f122ee1"
+											)
+										}
+									></input>{" "}
+									token receiver
+								</label>
+							</div>
+
+							<button onClick={revokeRole}>
+								<p>Revoke role</p>
+							</button>
+						</div>
+					</div>
+				)}
+			</header>
 		</div>
 	);
 }
