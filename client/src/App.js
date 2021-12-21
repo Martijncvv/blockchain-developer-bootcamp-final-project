@@ -9,24 +9,28 @@ import Web3 from "web3-eth";
 const OCUContractAddress = "0x34b8DCf220b40cD5A6bd1EBDcC1D73FA5cB3a305";
 
 function App() {
-	const [loaded, setLoaded] = useState(0);
+	const [loaded, setLoaded] = useState(false);
+	const [txConfirmed, setTxConfirmed] = useState(false);
 	const [openCleanUp, setOpenCleanUp] = useState(0);
 	const [accounts, setAccounts] = useState(0);
 	const [accountBalance, setAccountBalance] = useState(0);
-	const [accountRole, setAccountRole] = useState("None");
+	const [accountRole, setAccountRole] = useState("");
 	const [totalSupply, setTotalSupply] = useState(0);
 
 	const [mintInput, setMintInput] = useState(0);
 	const [burnInput, setBurnInput] = useState(0);
 
-	const [address, setAddress] = useState(0);
+	const [address, setAddress] = useState("");
+	const [addressRole, setAddressRole] = useState("");
+	const [role, setRole] = useState("");
 	const [grantRoleType, setGrantRoleType] = useState(0);
 	const [revokeRoleType, setRevokeRoleType] = useState(0);
 	const [distributeAmount, setDistributeAmount] = useState(0);
 
 	useEffect(() => {
 		if (typeof web3 !== "undefined") {
-			window.web3 = new Web3(window.web3.currentProvider);
+			// window.web3 = new Web3(window.web3.currentProvider);
+			window.web3 = new Web3(window.ethereum);
 
 			if (window.web3.currentProvider.isMetaMask === true) {
 				connectMetaMask();
@@ -66,10 +70,11 @@ function App() {
 				.on("connected", (str) => console.log("Connected: ", str));
 
 			getTokenInfo();
+			getAccountInfo();
 
 			console.log(openCleanUp);
 		}
-	}, [loaded, accounts, openCleanUp]);
+	}, [loaded, accounts, openCleanUp, txConfirmed]);
 
 	function connectMetaMask() {
 		window.web3
@@ -120,7 +125,6 @@ function App() {
 				}
 			})
 			.then((data) => {
-				// We have the data now, set it using the state
 				ABI = data.abi;
 			})
 			.catch((error) => {
@@ -129,22 +133,20 @@ function App() {
 		return ABI;
 	}
 
-	// getUserProfile will fetch account information from the block chain network
 	function getTokenInfo() {
-		// Let's grab the token total supply, the method is named the same as in the Solidity code, and add call() to execute it.
-		// We can also get the response using a callback. I do recommend this method most times as we dont know how long the executions can take.
 		call(openCleanUp.methods.totalSupply, setTotalSupply);
-		// balanceOf Requires input argument of the account to grab, so let's grab the first available account for now
-		call(openCleanUp.methods.balanceOf, setAccountBalance, accounts[0]);
 	}
 
-	// call takes in a function to execute and runs a given callback on the response
+	async function getAccountInfo() {
+		call(openCleanUp.methods.balanceOf, setAccountBalance, accounts[0]);
+		let _accountRole = await getAddressRole(accounts[0]);
+		setAccountRole(_accountRole);
+	}
+
 	function call(func, callback, ...args) {
-		// Trigger the function with the arguments
 		func(...args)
 			.call()
 			.then((result) => {
-				// Apply given callback, this is our stateSetters
 				callback(result);
 			})
 			.catch((error) => {
@@ -153,54 +155,69 @@ function App() {
 	}
 
 	function mint() {
+		setTxConfirmed(false);
 		openCleanUp.methods
 			.mint(mintInput)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
-				// We now have the gas amount, we can now send the transaction
-				openCleanUp.methods.mint(mintInput).send({
+				let tx = openCleanUp.methods.mint(mintInput).send({
 					from: accounts[0],
 					gas: gas,
 				});
-
-				// Fake update of account by changing stake, Trigger a reload when transaction is done later
-				// setAccountBalance(parseInt(accountBalance) + 1000);
+				return tx;
 			})
+			.then(() => {
+				// window.location.reload(false);
+				setTxConfirmed(true);
+			})
+
 			.catch((error) => {
 				throw new Error(error);
 			});
 	}
 
 	function burn() {
+		setTxConfirmed(false);
 		openCleanUp.methods
 			.burn(burnInput)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
-				// We now have the gas amount, we can now send the transaction
-				openCleanUp.methods.burn(burnInput).send({
+				let tx = openCleanUp.methods.burn(burnInput).send({
 					from: accounts[0],
 					gas: gas,
 				});
-
-				// setAccountBalance(parseInt(accountBalance) - 1000);
+				return tx;
+			})
+			.then(() => {
+				setTxConfirmed(true);
 			})
 			.catch((error) => {
 				throw new Error(error);
 			});
 	}
 
-	function roleOf(address) {
-		call(openCleanUp.methods.roleOf, setAccountRole, address);
-		switch (accountRole) {
+	function getAddressRole(_address) {
+		call(openCleanUp.methods.roleOf, setRole, _address);
+		switch (role) {
 			case "0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72":
 				return "foundation";
 			case "0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962":
 				return "token distributer";
 			case "0x5256df45158a1b783d5d1b7eae366e43e8adc1ddfe02d99d60edbfba2f122ee1":
 				return "token receiver";
-			case "0x1b489cce9d784ec074d286492a1ccc9efab255c8a4e6b74d2406b5b7674c6e74":
+			default:
 				return "none";
 		}
+	}
+
+	function displayAddressRole() {
+		console.log("000", role);
+		console.log("111", address);
+		let address_role = getAddressRole(address);
+		console.log("012", role);
+		console.log("222", address_role);
+		setAddressRole(address_role);
+		console.log("333", addressRole);
 	}
 
 	function grantRole() {
@@ -214,9 +231,6 @@ function App() {
 					from: accounts[0],
 					gas: gas,
 				});
-
-				// Fake update of account by changing stake, Trigger a reload when transaction is done later
-				// setAccountBalance(parseInt(accountBalance) + 1000);
 			})
 			.catch((error) => {
 				throw new Error(error);
@@ -228,14 +242,10 @@ function App() {
 			.revokeRole(revokeRoleType, address)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
-				// We now have the gas amount, we can now send the transaction
 				openCleanUp.methods.revokeRole(revokeRoleType, address).send({
 					from: accounts[0],
 					gas: gas,
 				});
-
-				// Fake update of account by changing stake, Trigger a reload when transaction is done later
-				// setAccountBalance(parseInt(accountBalance) + 1000);
 			})
 			.catch((error) => {
 				throw new Error(error);
@@ -247,7 +257,6 @@ function App() {
 			.distribute(address, distributeAmount)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
-				// We now have the gas amount, we can now send the transaction
 				openCleanUp.methods.distribute(address, distributeAmount).send({
 					from: accounts[0],
 					gas: gas,
@@ -261,17 +270,22 @@ function App() {
 	return (
 		<div className="App">
 			<header className="App-header">
+				{!loaded && (
+					<div>
+						<p>LOADING...</p>
+					</div>
+				)}
 				{loaded && (
 					<div>
 						<p>OpenCleanUp</p>
 						<p>Address: {accounts}</p>
 						<p>Account balance: {accountBalance}</p>
-						<p>Account role: {roleOf(accounts[0])}</p>
+						<p>Account role: {accountRole}</p>
 
 						<p>Total supply: {totalSupply}</p>
 					</div>
 				)}
-				{loaded && roleOf(accounts[0]) == "token distributer" && (
+				{loaded && getAddressRole(accounts[0]) == "token distributer" && (
 					<div>
 						<label>
 							Address
@@ -295,7 +309,7 @@ function App() {
 					</div>
 				)}
 
-				{loaded && roleOf(accounts[0]) == "foundation" && (
+				{loaded && getAddressRole(accounts[0]) == "foundation" && (
 					<div>
 						<div>
 							<input
@@ -317,6 +331,7 @@ function App() {
 								<p>Burn</p>
 							</button>
 						</div>
+						<br></br>
 						<div>
 							<label>
 								Address
@@ -326,8 +341,16 @@ function App() {
 									onChange={(event) => setAddress(event.target.value)}
 								></input>
 							</label>
-							<br></br>
 
+							<br></br>
+							<p>Address role: {addressRole}</p>
+							<div>
+								<button onClick={displayAddressRole}>
+									<p>Get role</p>
+								</button>
+							</div>
+
+							<br></br>
 							<div>
 								<label>
 									<input
