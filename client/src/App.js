@@ -14,7 +14,7 @@ function App() {
 	const [openCleanUp, setOpenCleanUp] = useState(0);
 	const [accounts, setAccounts] = useState(0);
 	const [accountBalance, setAccountBalance] = useState(0);
-	const [accountRole, setAccountRole] = useState("");
+	const [accountRole, setAccountRole] = useState(0);
 	const [totalSupply, setTotalSupply] = useState(0);
 
 	const [mintInput, setMintInput] = useState(0);
@@ -22,7 +22,6 @@ function App() {
 
 	const [address, setAddress] = useState("");
 	const [addressRole, setAddressRole] = useState("");
-	const [role, setRole] = useState("");
 	const [grantRoleType, setGrantRoleType] = useState(0);
 	const [revokeRoleType, setRevokeRoleType] = useState(0);
 	const [distributeAmount, setDistributeAmount] = useState(0);
@@ -44,7 +43,6 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		// Only get profile if we are completly loaded
 		if (loaded && accounts !== 0) {
 			let options = {
 				filter: {
@@ -52,7 +50,6 @@ function App() {
 				},
 			};
 
-			// Our contract has a field called events which has all Available events.
 			openCleanUp.events
 				.Mint(options)
 				// data is when
@@ -63,7 +60,7 @@ function App() {
 
 			openCleanUp.events
 				.Burn(options)
-				// data is when
+
 				.on("data", (event) => console.log("Data: ", event))
 				.on("changed", (changed) => console.log("Changed: ", changed))
 				.on("error", (err) => console.log("Err: ", err))
@@ -74,7 +71,7 @@ function App() {
 
 			console.log(openCleanUp);
 		}
-	}, [loaded, accounts, openCleanUp, txConfirmed]);
+	}, [loaded, accounts, accountRole, openCleanUp, txConfirmed]);
 
 	function connectMetaMask() {
 		window.web3
@@ -88,26 +85,21 @@ function App() {
 	}
 
 	async function connectToSelectedNetwork() {
-		// Connect to the selected network inside MetaMask
 		const web3 = new Web3(Web3.givenProvider);
-		// Set the ABI of the Built contract so we can interact with it
-		const abi = await getABI();
-		// console.log(abi);
 
-		// Make a new instance of the contract by giving the address and abi
+		const abi = await getABI();
+
 		const openCleanUpContract = await new web3.Contract(
 			abi,
 			OCUContractAddress
 		);
 
-		// Set the state of the app by passing the contract so we can reach it from other places
 		setOpenCleanUp(openCleanUpContract);
 		setLoaded(true);
 	}
 
 	// getABI loads the ABI of the contract
 	async function getABI() {
-		// DevToken.json should be placed inside the public folder so we can reach it
 		let ABI = "";
 		await fetch("./OpenCleanUp.json", {
 			headers: {
@@ -116,9 +108,7 @@ function App() {
 			},
 		})
 			.then((response) => {
-				// We have a Response, make sure its 200 or throw an error
 				if (response.status === 200) {
-					// This is actually also a promise so we need to chain it to grab data
 					return response.json();
 				} else {
 					throw new Error("Error fetching ABI");
@@ -139,8 +129,29 @@ function App() {
 
 	async function getAccountInfo() {
 		call(openCleanUp.methods.balanceOf, setAccountBalance, accounts[0]);
-		let _accountRole = await getAddressRole(accounts[0]);
-		setAccountRole(_accountRole);
+
+		let role = await getAddressRole(accounts[0]);
+		setAccountRole(role);
+	}
+
+	async function getAddressRole(_address) {
+		let role = await openCleanUp.methods.roleOf(_address).call();
+
+		console.log("role ", role);
+		switch (role) {
+			case "0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72":
+				return "foundation";
+			case "0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962":
+				return "token distributer";
+			case "0x5256df45158a1b783d5d1b7eae366e43e8adc1ddfe02d99d60edbfba2f122ee1":
+				return "token receiver";
+			default:
+				return "none";
+		}
+	}
+
+	async function displayAddressRole() {
+		setAddressRole(await getAddressRole(address));
 	}
 
 	function call(func, callback, ...args) {
@@ -167,7 +178,6 @@ function App() {
 				return tx;
 			})
 			.then(() => {
-				// window.location.reload(false);
 				setTxConfirmed(true);
 			})
 
@@ -194,30 +204,6 @@ function App() {
 			.catch((error) => {
 				throw new Error(error);
 			});
-	}
-
-	function getAddressRole(_address) {
-		call(openCleanUp.methods.roleOf, setRole, _address);
-		switch (role) {
-			case "0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72":
-				return "foundation";
-			case "0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962":
-				return "token distributer";
-			case "0x5256df45158a1b783d5d1b7eae366e43e8adc1ddfe02d99d60edbfba2f122ee1":
-				return "token receiver";
-			default:
-				return "none";
-		}
-	}
-
-	function displayAddressRole() {
-		console.log("000", role);
-		console.log("111", address);
-		let address_role = getAddressRole(address);
-		console.log("012", role);
-		console.log("222", address_role);
-		setAddressRole(address_role);
-		console.log("333", addressRole);
 	}
 
 	function grantRole() {
@@ -285,7 +271,7 @@ function App() {
 						<p>Total supply: {totalSupply}</p>
 					</div>
 				)}
-				{loaded && getAddressRole(accounts[0]) == "token distributer" && (
+				{loaded && accountRole == "token distributer" && (
 					<div>
 						<label>
 							Address
@@ -309,7 +295,7 @@ function App() {
 					</div>
 				)}
 
-				{loaded && getAddressRole(accounts[0]) == "foundation" && (
+				{loaded && accountRole == "foundation" && (
 					<div>
 						<div>
 							<input
@@ -333,21 +319,23 @@ function App() {
 						</div>
 						<br></br>
 						<div>
-							<label>
-								Address
-								<input
-									type="text"
-									id="roleAddress"
-									onChange={(event) => setAddress(event.target.value)}
-								></input>
-							</label>
-
+							<div>
+								<label>
+									Address
+									<input
+										type="text"
+										id="roleAddress"
+										onChange={(event) => setAddress(event.target.value)}
+									></input>
+								</label>
+							</div>
 							<br></br>
-							<p>Address role: {addressRole}</p>
+
 							<div>
 								<button onClick={displayAddressRole}>
-									<p>Get role</p>
+									<p>Check address role</p>
 								</button>
+								<p>Address role: {addressRole}</p>
 							</div>
 
 							<br></br>
@@ -394,7 +382,7 @@ function App() {
 							</div>
 
 							<button onClick={grantRole}>
-								<p>Grant role</p>
+								<p>Grant role to address</p>
 							</button>
 						</div>
 						<div>
@@ -442,7 +430,7 @@ function App() {
 							</div>
 
 							<button onClick={revokeRole}>
-								<p>Revoke role</p>
+								<p>Revoke role from address</p>
 							</button>
 						</div>
 					</div>
@@ -453,3 +441,12 @@ function App() {
 }
 
 export default App;
+
+// account 1
+// 0xFB76057e610aC2746B68E23501319BbA8EF7cCDc
+
+// account 2
+// 0xFd4689E3D71EcF99d65AA22E73447f6C3940b603
+
+// account 3
+// 0xDD5c09e521Cb45cCB66Ef9D239D8b2724ac62530
