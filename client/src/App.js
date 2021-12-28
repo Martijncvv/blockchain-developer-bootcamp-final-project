@@ -5,8 +5,7 @@ import Web3 from "web3-eth";
 // import OpenCleanup from "./contracts/OpenCleanUp.json";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
-// Needs to change to reflect current OpenCleanup address
-const OCUContractAddress = "0x34b8DCf220b40cD5A6bd1EBDcC1D73FA5cB3a305";
+const OCUContractAddress = "0x5Bca105f93873bb9383a4AEb460BA29Aa44bA738";
 
 function App() {
 	const [loaded, setLoaded] = useState(false);
@@ -52,7 +51,6 @@ function App() {
 
 			openCleanUp.events
 				.Mint(options)
-				// data is when
 				.on("data", (event) => console.log("Data: ", event))
 				.on("changed", (changed) => console.log("Changed: ", changed))
 				.on("error", (err) => console.log("Err: ", err))
@@ -98,7 +96,6 @@ function App() {
 		setLoaded(true);
 	}
 
-	// getABI loads the ABI of the contract
 	async function getABI() {
 		let ABI = "";
 		await fetch("./OpenCleanUp.json", {
@@ -212,16 +209,36 @@ function App() {
 			.grantRole(grantRoleType, address)
 			.estimateGas({ from: accounts[0] })
 			.then((gas) => {
-				// We now have the gas amount, we can now send the transaction
 				openCleanUp.methods.grantRole(grantRoleType, address).send({
 					from: accounts[0],
 					gas: gas,
 				});
 			})
+
 			.catch((error) => {
 				throw new Error(error);
 			});
 	}
+
+	function grantFoundationRole() {
+		setTxConfirmed(false);
+		openCleanUp.methods
+			.previewGrantRole()
+			.estimateGas({ from: accounts[0] })
+			.then((gas) => {
+				openCleanUp.methods.previewGrantRole().send({
+					from: accounts[0],
+					gas: gas,
+				});
+			})
+			.then(() => {
+				setTxConfirmed(true);
+			})
+			.catch((error) => {
+				throw new Error(error);
+			});
+	}
+
 	function revokeRole() {
 		console.log(revokeRoleType, address);
 		openCleanUp.methods
@@ -263,7 +280,7 @@ function App() {
 				)}
 				{loaded && (
 					<div>
-						<p>OpenCleanUp</p>
+						<h1>OpenCleanUp</h1>
 						<p>Address: {accounts}</p>
 						<p>Account balance: {accountBalance}</p>
 						<p>Account role: {accountRole}</p>
@@ -271,32 +288,9 @@ function App() {
 						<p>Total supply: {totalSupply}</p>
 					</div>
 				)}
-				{loaded && accountRole == "token distributer" && (
-					<div>
-						<label>
-							Address
-							<input
-								type="text"
-								id="Address"
-								onChange={(event) => setAddress(event.target.value)}
-							></input>
-						</label>
-						<label>
-							Amount
-							<input
-								type="number"
-								id="number"
-								onChange={(event) => setDistributeAmount(event.target.value)}
-							></input>
-						</label>
-						<button onClick={distribute}>
-							<p>Distribute</p>
-						</button>
-					</div>
-				)}
-
 				{loaded && accountRole == "foundation" && (
 					<div>
+						<h3>Foundation Controls</h3>
 						<div>
 							<input
 								type="number"
@@ -433,6 +427,38 @@ function App() {
 								<p>Revoke role from address</p>
 							</button>
 						</div>
+					</div>
+				)}
+				{loaded && accountRole == "token distributer" && (
+					<div>
+						<h3>Distributer Controls</h3>
+						<label>
+							Address
+							<input
+								type="text"
+								id="Address"
+								onChange={(event) => setAddress(event.target.value)}
+							></input>
+						</label>
+						<label>
+							Amount
+							<input
+								type="number"
+								id="number"
+								onChange={(event) => setDistributeAmount(event.target.value)}
+							></input>
+						</label>
+						<button onClick={distribute}>
+							<p>Distribute</p>
+						</button>
+					</div>
+				)}
+				{loaded && accountRole == "none" && (
+					<div>
+						<h3> Showcase function </h3>
+						<button onClick={grantFoundationRole}>
+							<p>Grant Foundation role to address</p>
+						</button>
 					</div>
 				)}
 			</header>
