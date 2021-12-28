@@ -5,7 +5,7 @@ import Web3 from "web3-eth";
 // import OpenCleanup from "./contracts/OpenCleanUp.json";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
-const OCUContractAddress = "0x5Bca105f93873bb9383a4AEb460BA29Aa44bA738";
+const OCUContractAddress = "0x998B9cFa8A6c1ca7D3a0A9a509ff22bd4d6dFe21";
 
 function App() {
 	const [loaded, setLoaded] = useState(false);
@@ -16,14 +16,15 @@ function App() {
 	const [accountRole, setAccountRole] = useState(0);
 	const [totalSupply, setTotalSupply] = useState(0);
 
-	const [mintInput, setMintInput] = useState(0);
-	const [burnInput, setBurnInput] = useState(0);
+	const [mintAmount, setMintAmount] = useState(0);
+	const [burnAmount, setBurnAmount] = useState(0);
+
+	const [distributeAmount, setDistributeAmount] = useState(0);
 
 	const [address, setAddress] = useState("");
 	const [addressRole, setAddressRole] = useState("");
 	const [grantRoleType, setGrantRoleType] = useState(0);
 	const [revokeRoleType, setRevokeRoleType] = useState(0);
-	const [distributeAmount, setDistributeAmount] = useState(0);
 
 	useEffect(() => {
 		if (typeof web3 !== "undefined") {
@@ -34,10 +35,10 @@ function App() {
 				connectMetaMask();
 				connectToSelectedNetwork();
 			} else {
-				console.log("Please download MetaMask");
+				alert("Please download MetaMask");
 			}
 		} else {
-			console.log("No web3 support found");
+			alert("No web3 support found");
 		}
 	}, []);
 
@@ -49,25 +50,39 @@ function App() {
 				},
 			};
 
-			openCleanUp.events
-				.Mint(options)
-				.on("data", (event) => console.log("Data: ", event))
-				.on("changed", (changed) => console.log("Changed: ", changed))
-				.on("error", (err) => console.log("Err: ", err))
-				.on("connected", (str) => console.log("Connected: ", str));
+			// openCleanUp.events
+			// 	.Mint(options)
+			// 	.on("data", (event) => console.log("Data: ", event))
+			// 	.on("changed", (changed) => console.log("Changed: ", changed))
+			// 	.on("error", (err) => console.log("Err: ", err))
+			// 	.on("connected", (str) => console.log("Connected: ", str));
 
-			openCleanUp.events
-				.Burn(options)
+			// openCleanUp.events
+			// 	.Burn(options)
 
-				.on("data", (event) => console.log("Data: ", event))
-				.on("changed", (changed) => console.log("Changed: ", changed))
-				.on("error", (err) => console.log("Err: ", err))
-				.on("connected", (str) => console.log("Connected: ", str));
+			// 	.on("data", (event) => console.log("Data: ", event))
+			// 	.on("changed", (changed) => console.log("Changed: ", changed))
+			// 	.on("error", (err) => console.log("Err: ", err))
+			// 	.on("connected", (str) => console.log("Connected: ", str));
+
+			// openCleanUp.events
+			// 	.GrantRole(options)
+
+			// 	.on("data", (event) => console.log("Data: ", event))
+			// 	.on("changed", (changed) => console.log("Changed: ", changed))
+			// 	.on("error", (err) => console.log("Err: ", err))
+			// 	.on("connected", (str) => console.log("Connected: ", str));
+
+			// openCleanUp.events
+			// 	.RevokeRole(options)
+
+			// 	.on("data", (event) => console.log("Data: ", event))
+			// 	.on("changed", (changed) => console.log("Changed: ", changed))
+			// 	.on("error", (err) => console.log("Err: ", err))
+			// 	.on("connected", (str) => console.log("Connected: ", str));
 
 			getTokenInfo();
 			getAccountInfo();
-
-			console.log(openCleanUp);
 		}
 	}, [loaded, accounts, accountRole, openCleanUp, txConfirmed]);
 
@@ -115,6 +130,7 @@ function App() {
 				ABI = data.abi;
 			})
 			.catch((error) => {
+				alert("Error, see console log");
 				throw new Error(error);
 			});
 		return ABI;
@@ -134,7 +150,6 @@ function App() {
 	async function getAddressRole(_address) {
 		let role = await openCleanUp.methods.roleOf(_address).call();
 
-		console.log("role ", role);
 		switch (role) {
 			case "0x42c574c7286eda4a697031a50021e14becf19cc00ff83d93a7547d3809b37f72":
 				return "foundation";
@@ -158,117 +173,237 @@ function App() {
 				callback(result);
 			})
 			.catch((error) => {
+				alert("Call error, see console log");
 				throw new Error(error);
 			});
 	}
 
-	function mint() {
-		setTxConfirmed(false);
-		openCleanUp.methods
-			.mint(mintInput)
-			.estimateGas({ from: accounts[0] })
-			.then((gas) => {
-				let tx = openCleanUp.methods.mint(mintInput).send({
-					from: accounts[0],
-					gas: gas,
-				});
-				return tx;
-			})
-			.then(() => {
-				setTxConfirmed(true);
-			})
+	async function mint() {
+		try {
+			setTxConfirmed(false);
+			let gas = await openCleanUp.methods
+				.mint(mintAmount)
+				.estimateGas({ from: accounts[0] });
 
-			.catch((error) => {
-				throw new Error(error);
+			let tx = await openCleanUp.methods.mint(mintAmount).send({
+				from: accounts[0],
+				gas: gas,
 			});
-	}
 
-	function burn() {
-		setTxConfirmed(false);
-		openCleanUp.methods
-			.burn(burnInput)
-			.estimateGas({ from: accounts[0] })
-			.then((gas) => {
-				let tx = openCleanUp.methods.burn(burnInput).send({
-					from: accounts[0],
-					gas: gas,
-				});
-				return tx;
-			})
-			.then(() => {
-				setTxConfirmed(true);
-			})
-			.catch((error) => {
-				throw new Error(error);
+			console.log("tx: ", tx);
+			setTxConfirmed(true);
+		} catch (error) {
+			alert(`Mint error:\n${error.message}`);
+			console.log(error);
+		}
+	}
+	// function mint() {
+	// 	setTxConfirmed(false);
+	// 	openCleanUp.methods
+	// 		.mint(mintAmount)
+	// 		.estimateGas({ from: accounts[0] })
+	// 		.then((gas) => {
+	// 			let tx = openCleanUp.methods.mint(mintAmount).send({
+	// 				from: accounts[0],
+	// 				gas: gas,
+	// 			});
+	// 			return tx;
+	// 		})
+	// 		.then(() => {
+	// 			setTxConfirmed(true);
+	// 		})
+
+	// 		.catch((error) => {
+	// 			alert("Mint error, see console log");
+	// 			throw new Error(error);
+	// 		});
+	// }
+
+	async function burn() {
+		try {
+			setTxConfirmed(false);
+			let gas = await openCleanUp.methods
+				.burn(burnAmount)
+				.estimateGas({ from: accounts[0] });
+			let tx = await openCleanUp.methods.burn(burnAmount).send({
+				from: accounts[0],
+				gas: gas,
 			});
+			console.log("tx: ", tx);
+			setTxConfirmed(true);
+		} catch (error) {
+			alert(`Burn error:\n${error.message}`);
+			console.log(error);
+		}
 	}
+	// function burn() {
+	// 	setTxConfirmed(false);
+	// 	openCleanUp.methods
+	// 		.burn(burnAmount)
+	// 		.estimateGas({ from: accounts[0] })
+	// 		.then((gas) => {
+	// 			let tx = openCleanUp.methods.burn(burnAmount).send({
+	// 				from: accounts[0],
+	// 				gas: gas,
+	// 			});
+	// 			return tx;
+	// 		})
+	// 		.then(() => {
+	// 			setTxConfirmed(true);
+	// 		})
+	// 		.catch((error) => {
+	// 			alert("Burn error, see console log");
+	// 			throw new Error(error);
+	// 		});
+	// }
 
-	function grantRole() {
+	async function grantRole() {
 		console.log(grantRoleType, address);
-		openCleanUp.methods
-			.grantRole(grantRoleType, address)
-			.estimateGas({ from: accounts[0] })
-			.then((gas) => {
-				openCleanUp.methods.grantRole(grantRoleType, address).send({
+		try {
+			let gas = await openCleanUp.methods
+				.grantRole(grantRoleType, address)
+				.estimateGas({ from: accounts[0] });
+
+			let tx = await openCleanUp.methods
+				.grantRole(grantRoleType, address)
+				.send({
 					from: accounts[0],
 					gas: gas,
 				});
-			})
 
-			.catch((error) => {
-				throw new Error(error);
-			});
+			console.log("tx: ", tx);
+		} catch (error) {
+			alert(`Grant role error:\n${error.message}`);
+			console.log(error);
+		}
 	}
+	// function grantRole() {
+	// 	console.log(grantRoleType, address);
+	// 	openCleanUp.methods
+	// 		.grantRole(grantRoleType, address)
+	// 		.estimateGas({ from: accounts[0] })
+	// 		.then((gas) => {
+	// 			openCleanUp.methods.grantRole(grantRoleType, address).send({
+	// 				from: accounts[0],
+	// 				gas: gas,
+	// 			});
+	// 		})
 
-	function grantFoundationRole() {
-		setTxConfirmed(false);
-		openCleanUp.methods
-			.previewGrantRole()
-			.estimateGas({ from: accounts[0] })
-			.then((gas) => {
-				openCleanUp.methods.previewGrantRole().send({
+	// 		.catch((error) => {
+	// 			alert("Grant role error, see console log");
+	// 			throw new Error(error);
+	// 		});
+	// }
+
+	async function grantFoundationRole() {
+		try {
+			setTxConfirmed(false);
+			let gas = await openCleanUp.methods
+				.previewGrantRole()
+				.estimateGas({ from: accounts[0] });
+
+			let tx = await openCleanUp.methods.previewGrantRole().send({
+				from: accounts[0],
+				gas: gas,
+			});
+			console.log("tx: ", tx);
+			setTxConfirmed(true);
+		} catch (error) {
+			alert(`Grant foundation role error:\n${error.message}`);
+			console.log(error);
+		}
+	}
+	// function grantFoundationRole() {
+	// 	setTxConfirmed(false);
+	// 	openCleanUp.methods
+	// 		.previewGrantRole()
+	// 		.estimateGas({ from: accounts[0] })
+	// 		.then((gas) => {
+	// 			openCleanUp.methods.previewGrantRole().send({
+	// 				from: accounts[0],
+	// 				gas: gas,
+	// 			});
+	// 		})
+	// 		.then(() => {
+	// 			setTxConfirmed(true);
+	// 		})
+	// 		.catch((error) => {
+	// 			alert("Grant foundation role error, see console log");
+	// 			throw new Error(error);
+	// 		});
+	// }
+
+	async function revokeRole() {
+		try {
+			setTxConfirmed(false);
+			let gas = await openCleanUp.methods
+				.revokeRole(revokeRoleType, address)
+				.estimateGas({ from: accounts[0] });
+
+			let tx = await openCleanUp.methods
+				.revokeRole(revokeRoleType, address)
+				.send({
 					from: accounts[0],
 					gas: gas,
 				});
-			})
-			.then(() => {
-				setTxConfirmed(true);
-			})
-			.catch((error) => {
-				throw new Error(error);
-			});
+			console.log("tx: ", tx);
+			setTxConfirmed(true);
+		} catch (error) {
+			alert(`Revoke role error:\n${error.message}`);
+			console.log(error);
+		}
 	}
+	// function revokeRole() {
+	// 	console.log(revokeRoleType, address);
+	// 	openCleanUp.methods
+	// 		.revokeRole(revokeRoleType, address)
+	// 		.estimateGas({ from: accounts[0] })
+	// 		.then((gas) => {
+	// 			openCleanUp.methods.revokeRole(revokeRoleType, address).send({
+	// 				from: accounts[0],
+	// 				gas: gas,
+	// 			});
+	// 		})
+	// 		.catch((error) => {
+	// 			alert("Revoke role error, see console log");
+	// 			throw new Error(error);
+	// 		});
+	// }
 
-	function revokeRole() {
-		console.log(revokeRoleType, address);
-		openCleanUp.methods
-			.revokeRole(revokeRoleType, address)
-			.estimateGas({ from: accounts[0] })
-			.then((gas) => {
-				openCleanUp.methods.revokeRole(revokeRoleType, address).send({
+	async function distribute() {
+		try {
+			let gas = await openCleanUp.methods
+				.distribute(address, distributeAmount)
+				.estimateGas({ from: accounts[0] });
+
+			let tx = await openCleanUp.methods
+				.distribute(address, distributeAmount)
+				.send({
 					from: accounts[0],
 					gas: gas,
 				});
-			})
-			.catch((error) => {
-				throw new Error(error);
-			});
-	}
 
-	function distribute() {
-		openCleanUp.methods
-			.distribute(address, distributeAmount)
-			.estimateGas({ from: accounts[0] })
-			.then((gas) => {
-				openCleanUp.methods.distribute(address, distributeAmount).send({
-					from: accounts[0],
-					gas: gas,
-				});
-			})
-			.catch((error) => {
-				throw new Error(error);
-			});
+			console.log("tx: ", tx);
+		} catch (error) {
+			alert(`Distribution error:\n${error.message}`);
+			console.log(error);
+		}
 	}
+	// function distribute() {
+	// 	openCleanUp.methods
+	// 		.distribute(address, distributeAmount)
+	// 		.estimateGas({ from: accounts[0] })
+	// 		.then((gas) => {
+	// 			openCleanUp.methods.distribute(address, distributeAmount).send({
+	// 				from: accounts[0],
+	// 				gas: gas,
+	// 			});
+	// 		})
+	// 		.catch((error) => {
+	// 			alert("Distribution error, see console log");
+	// 			throw new Error(error);
+	// 		});
+	// }
 
 	return (
 		<div className="App">
@@ -295,7 +430,7 @@ function App() {
 							<input
 								type="number"
 								id="mint"
-								onChange={(event) => setMintInput(event.target.value)}
+								onChange={(event) => setMintAmount(event.target.value)}
 							></input>
 							<button onClick={mint}>
 								<p>Mint</p>
@@ -305,7 +440,7 @@ function App() {
 							<input
 								type="number"
 								id="burn"
-								onChange={(event) => setBurnInput(event.target.value)}
+								onChange={(event) => setBurnAmount(event.target.value)}
 							></input>
 							<button onClick={burn}>
 								<p>Burn</p>
