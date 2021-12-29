@@ -5,7 +5,7 @@ import Web3 from "web3-eth";
 // import OpenCleanup from "./contracts/OpenCleanUp.json";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
-const OCUContractAddress = "0x998B9cFa8A6c1ca7D3a0A9a509ff22bd4d6dFe21";
+const OCUContractAddress = "0x55b6CcAf08366fa8a4F55671580533865513cBAB";
 
 function App() {
 	const [loaded, setLoaded] = useState(false);
@@ -182,10 +182,10 @@ function App() {
 		try {
 			setTxConfirmed(false);
 			let gas = await openCleanUp.methods
-				.mint(mintAmount)
+				.mint(`${mintAmount * 10 ** 18}`)
 				.estimateGas({ from: accounts[0] });
 
-			let tx = await openCleanUp.methods.mint(mintAmount).send({
+			let tx = await openCleanUp.methods.mint(`${mintAmount * 10 ** 18}`).send({
 				from: accounts[0],
 				gas: gas,
 			});
@@ -223,9 +223,9 @@ function App() {
 		try {
 			setTxConfirmed(false);
 			let gas = await openCleanUp.methods
-				.burn(burnAmount)
+				.burn(`${burnAmount * 10 ** 18}`)
 				.estimateGas({ from: accounts[0] });
-			let tx = await openCleanUp.methods.burn(burnAmount).send({
+			let tx = await openCleanUp.methods.burn(`${burnAmount * 10 ** 18}`).send({
 				from: accounts[0],
 				gas: gas,
 			});
@@ -334,6 +334,7 @@ function App() {
 	// }
 
 	async function revokeRole() {
+		console.log(revokeRoleType, address);
 		try {
 			setTxConfirmed(false);
 			let gas = await openCleanUp.methods
@@ -372,12 +373,13 @@ function App() {
 
 	async function distribute() {
 		try {
+			console.log(address, distributeAmount);
 			let gas = await openCleanUp.methods
-				.distribute(address, distributeAmount)
+				.distribute(address, `${distributeAmount * 10 ** 18}`)
 				.estimateGas({ from: accounts[0] });
 
 			let tx = await openCleanUp.methods
-				.distribute(address, distributeAmount)
+				.distribute(address, `${distributeAmount * 10 ** 18}`)
 				.send({
 					from: accounts[0],
 					gas: gas,
@@ -417,15 +419,15 @@ function App() {
 					<div>
 						<h1>OpenCleanUp</h1>
 						<p>Address: {accounts}</p>
-						<p>Account balance: {accountBalance}</p>
+						<p>Account balance: {accountBalance / 10 ** 18}</p>
 						<p>Account role: {accountRole}</p>
 
-						<p>Total supply: {totalSupply}</p>
+						<p>Total supply: {totalSupply / 10 ** 18}</p>
 					</div>
 				)}
 				{loaded && accountRole == "foundation" && (
 					<div>
-						<h3>Foundation Controls</h3>
+						<h3>Foundation Wallet Controls</h3>
 						<div>
 							<input
 								type="number"
@@ -448,6 +450,7 @@ function App() {
 						</div>
 						<br></br>
 						<div>
+							<h3>Address Role Controls</h3>
 							<div>
 								<label>
 									Address
@@ -590,7 +593,7 @@ function App() {
 				)}
 				{loaded && accountRole == "none" && (
 					<div>
-						<h3> Showcase function </h3>
+						<h3> Preview Functionality </h3>
 						<button onClick={grantFoundationRole}>
 							<p>Grant Foundation role to address</p>
 						</button>
