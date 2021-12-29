@@ -5,7 +5,7 @@ import Web3 from "web3-eth";
 // import OpenCleanup from "./contracts/OpenCleanUp.json";
 // import "bootstrap/dist/css/bootstrap.min.css";
 
-const OCUContractAddress = "0x55b6CcAf08366fa8a4F55671580533865513cBAB";
+const OCUContractAddress = "0x2D0b583dA6FFdeE25c014A7b802D316029bC9029";
 
 function App() {
 	const [loaded, setLoaded] = useState(false);
