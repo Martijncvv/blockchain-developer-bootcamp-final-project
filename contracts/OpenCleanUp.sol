@@ -15,14 +15,14 @@ contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
 
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
-    string public name = "OpenCleanUp";
-    string public symbol = "OCU";
+    string constant public name = "OpenCleanUp";
+    string constant public symbol = "OCU";
     uint public override totalSupply = 10000 * (10**18);
-    uint8 public decimals = 18;
+    uint8 constant public decimals = 18;
 
     bool public isStopped = false;
 
-    address public foundation;
+    address immutable public foundation;
 
 
     constructor() {
@@ -45,14 +45,14 @@ contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
 
     function withdraw(address payable _to, uint _amount) external onlyRole(FOUNDATION) {
         (bool sent, ) = _to.call{value: _amount}("");
-        require(sent, "Failed to send Ether");
+        require(sent, "Failed to send ETH");
     }
 
-    function stopContract() public onlyRole(FOUNDATION) {
+    function stopContract() external onlyRole(FOUNDATION) {
         isStopped = true;
     }
 
-    function resumeContract() public onlyRole(FOUNDATION) {
+    function resumeContract() external onlyRole(FOUNDATION) {
         isStopped = false;
     }
 
@@ -89,14 +89,14 @@ contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
     }
 
     function burn(uint amount) external onlyRole(FOUNDATION) {
-        require(balanceOf[foundation] >= amount,"Not enough balance available");
+        require(balanceOf[foundation] >= amount,"Not enough balance");
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         emit Burn(msg.sender, amount);
     }
 
     function distribute(address recipient, uint amount) external stopInEmergency onlyRole(TOKEN_DISTRIBUTER) returns (bool) {
-        require(balanceOf[foundation] >= amount,"Not enough balance available");
+        require(balanceOf[foundation] >= amount,"Not enough balance");
         balanceOf[foundation] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);

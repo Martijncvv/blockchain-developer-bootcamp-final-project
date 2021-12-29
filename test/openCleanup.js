@@ -11,8 +11,8 @@ contract("OpenCleanUp", async (accounts) => {
 		let supply = await openCleanUp.totalSupply();
 
 		assert.equal(
-			supply.toNumber(),
-			10000,
+			supply,
+			10000 * 10 ** 18,
 			"Initial supply was not the same as in migration"
 		);
 	});
@@ -23,23 +23,22 @@ contract("OpenCleanUp", async (accounts) => {
 
 			await openCleanUp.mint(1000);
 
-			let foundation_balance = await openCleanUp.balanceOf(foundation);
+			let foundationBalance = await openCleanUp.balanceOf(foundation);
 			assert.equal(
-				foundation_balance.toNumber(),
-				11000,
+				foundationBalance,
+				10000 * 10 ** 18 + 1000,
 				"Foundation balance is not 11000; no mint"
 			);
 		});
 
-		it("should not be able to mint tokens with other wallets", async () => {
+		it("should not be able to mint tokens with non-foundation wallets", async () => {
 			const [foundation, marty, lara] = accounts;
 			openCleanUp = await OpenCleanUp.deployed();
 
 			try {
 				await openCleanUp.mint(1000, { from: marty });
-				await openCleanUp.mint(1000, { from: lara });
 			} catch (error) {
-				assert.equal(error.reason, "Not authorized with your role");
+				assert.equal(error.reason, "Not authorized with role");
 			}
 		});
 		it("should burn 1000 tokens with Foundation wallet", async () => {
@@ -48,10 +47,10 @@ contract("OpenCleanUp", async (accounts) => {
 
 			await openCleanUp.burn(1000);
 
-			let foundation_balance = await openCleanUp.balanceOf(foundation);
+			let foundationBalance = await openCleanUp.balanceOf(foundation);
 			assert.equal(
-				foundation_balance.toNumber(),
-				10000,
+				foundationBalance,
+				10000 * 10 ** 18,
 				"Foundation balance is not 10000; no burn"
 			);
 		});
@@ -87,6 +86,27 @@ contract("OpenCleanUp", async (accounts) => {
 				"0x1b489cce9d784ec074d286492a1ccc9efab255c8a4e6b74d2406b5b7674c6e74",
 				"Wallet 1 role is not NONE"
 			);
+		});
+		it("should give token-distributer role to a wallet and the wallet should distribute tokens", async () => {
+			const [foundation, marty, lara] = accounts;
+			openCleanUp = await OpenCleanUp.deployed();
+
+			try {
+				await openCleanUp.grantRole(
+					"0xa8be2c61382bed6254f75e306150d63d18d487cc8453e448fff554cbc742e962",
+					marty
+				);
+				await openCleanUp.distribute(lara, 1000, { from: marty });
+
+				let larasBalance = await openCleanUp.balanceOf(lara);
+				assert.equal(
+					larasBalance,
+					1000,
+					"Laras balance is not 1000; distribution wasn't executed."
+				);
+			} catch (error) {
+				assert.equal(error.reason, "Not authorized with your role");
+			}
 		});
 	});
 });

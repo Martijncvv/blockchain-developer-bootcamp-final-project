@@ -1,29 +1,21 @@
-# Contract security measures
+# Contract Security Measures
 
-## Using Specific Compiler Pragma
+## Integer Over / Underflow (SWC-101)
 
-Compiler pragma `0.8.0` used in contracts to avoid bugs due to outdated compilers.
+- The SafeMath library is shipped with Solidity 0.8.x.
 
-## Integer Over / Underflow
+## Floating Pragma (SWC-103)
 
-The SafeMath library is shipped with Solidity 0.8.x.
+- Compiler pragma `0.8.0` used in contracts to avoid bugs due to outdated compilers.
+
+## Unprotected Ether Withdrawal (SWC-105)
+
+- Ether withdrawals are protected by role based access control.
 
 ## Use Modifiers Only for Validation
 
-All modifiers only validate data with `require` statements.
+- All modifiers only validate data with `require` statements.
 
-## Protected Ether Withdrawal
+## Proper use of call and delegatecall instead of send, transfer
 
-### OpenCleanUp Contract
-
-- ETH Withdrawal is protected by role based access control.
-
-### OpenCleanUpRoles Contract
-
-- ETH Withdrawal is protected by contract owner access control.
-
-## Proper Use of Require, Assert and Revert
-
-## Checks-Effects-Interactions
-
-## Proper use of .call and .delegateCall
+- The function `withdraw()` uses the `.cal` statement to withdraw Ether.
