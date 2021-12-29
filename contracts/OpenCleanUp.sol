@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.0;
 
 // import "./IERC20.sol";
 // import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -11,14 +11,16 @@ import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
     event Burn(address indexed sender, uint amount);
     event Mint(address indexed sender, uint amount);
+    event Log(string func, address sender, uint value, bytes data);
 
-    // token functionality
-    uint public override totalSupply = 10000;
     mapping(address => uint) public override balanceOf;
     mapping(address => mapping(address => uint)) public override allowance;
     string public name = "OpenCleanUp";
     string public symbol = "OCU";
+    uint public override totalSupply = 10000 * (10**18);
     uint8 public decimals = 18;
+
+    bool public isStopped = false;
 
     address public foundation;
 
@@ -27,6 +29,31 @@ contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
         balanceOf[msg.sender] = totalSupply;
         foundation = msg.sender;
         roles[FOUNDATION][msg.sender] = true;
+    }
+
+    modifier stopInEmergency {
+        require(!isStopped, "Contract stopped"); 
+        _; 
+    }
+
+    fallback() external payable {
+        emit Log("fallback", msg.sender, msg.value, msg.data);
+    }
+    receive() external payable {
+        emit Log("receive", msg.sender, msg.value, "");
+    }
+
+    function withdraw(address payable _to, uint _amount) external onlyRole(FOUNDATION) {
+        (bool sent, ) = _to.call{value: _amount}("");
+        require(sent, "Failed to send Ether");
+    }
+
+    function stopContract() public onlyRole(FOUNDATION) {
+        isStopped = true;
+    }
+
+    function resumeContract() public onlyRole(FOUNDATION) {
+        isStopped = false;
     }
 
     function transfer(address recipient, uint amount) external override returns (bool) {
@@ -62,12 +89,14 @@ contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
     }
 
     function burn(uint amount) external onlyRole(FOUNDATION) {
+        require(balanceOf[foundation] >= amount,"Not enough balance available");
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         emit Burn(msg.sender, amount);
     }
 
-    function distribute(address recipient, uint amount) external onlyRole(TOKEN_DISTRIBUTER) returns (bool) {
+    function distribute(address recipient, uint amount) external stopInEmergency onlyRole(TOKEN_DISTRIBUTER) returns (bool) {
+        require(balanceOf[foundation] >= amount,"Not enough balance available");
         balanceOf[foundation] -= amount;
         balanceOf[recipient] += amount;
         emit Transfer(msg.sender, recipient, amount);
