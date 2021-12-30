@@ -1,7 +1,7 @@
 const OpenCleanUp = artifacts.require("OpenCleanUp");
 
 contract("OpenCleanUp", async (accounts) => {
-	it("should assert true", async () => {
+	it("should check if contract is deployed", async () => {
 		await OpenCleanUp.deployed();
 		return assert.isTrue(true);
 	});
