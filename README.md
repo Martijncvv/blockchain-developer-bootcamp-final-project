@@ -13,60 +13,50 @@ https://opencleanup.netlify.app/
 - Node.js v8.9.4 or later
 - NPM v5.0.3 or later
 - Windows, Linux or Mac OS X
-- MetaMask extension in your browser
+- MetaMask extension in browser
 - Ganache or another local testnet on port 7545
-- git clone https://github.com/Martijncvv/blockchain-developer-bootcamp-final-project.git
 
 ### Run smartcontract unit test
 
-In root:
+- git clone https://github.com/Martijncvv/blockchain-developer-bootcamp-final-project.git
+- In terminal at project root folder, `npm install`
+- `truffle develop`
+- `migrate`
+- `test`
 
-- npm install
-- truffle develop
-- migrate
-- test
+### Run dApp on browser with Ropsten testnet
 
-### Run dApp on Ropsten testnet
-
-- Connect MetaMask with Ropsten testnet.
+- Connect MetaMask with Ropsten testnet
 - Open https://opencleanup.netlify.app/
 
 ### Run dApp on local server
 
-- git clone https://github.com/Martijncvv/blockchain-developer-bootcamp-final-project.git
-- In root, npm install
-- Open Ganache and run on port 7545
+- In terminal `git clone https://github.com/Martijncvv/blockchain-developer-bootcamp-final-project.git`
+- In terminal at project root folder, `npm install`
+- Open Ganache and run testnet on port 7545
 - In browser, connect Metamask with testnet on port 7545
 - In Metamask, click ‘Import Account’.
 - In Ganache, click on the key icon to the right of the first wallet. Copy and paste the private key into Metamask to import account.
-- In terminal, truffle migrate --network development
-- Copy 'OpenCleanUp Contract Address' from terminal and paste after 'OCUContractAddress' in client/src/App.js at line 8
-- In terminal, cd client
-- npm install
-- In terminal, npm start
+- In terminal at project root folder, `truffle migrate --network development`
+- Copy 'OpenCleanUp Contract Address' from terminal and paste after 'OCUContractAddress' in blockchain-developer-bootcamp-final-project/client/src/App.js at line 8
+- To setup frontend:
+- In terminal at project root folder, `cd client`
+- `npm install`
+- `npm start`
 - In browser, go to http://localhost:3000/
+- Add more accounts from Ganache to Metamask to test multiple features
 
-truffle console --network development
-///////
+## Screencast link
 
-### Server
+youtube...
 
-In root:
+## Public Ethereum wallet for certification
 
-- npm install
-- Run local testnet in port 7545 with an Ethereum client, e.g. Ganache
-- truffle develop
-- migrate
-- test
+0x6c9a9E71F384D1aFf6914eB2723E538593195f56
 
-### Frontend
+ENS: Martijncvv.eth
 
-- cd client
-- npm install
-- Connect Metamask with testnet on port 7545
-- npm start
-- Started at http://localhost:3000/
-  ///////////
+# Project description
 
 ## Problem
 
@@ -98,3 +88,8 @@ Instead of individuals spending hours of walking with a collection box, gatherin
 - Data about the tokens; nr of tokens donated, distributed, spent and burned. And by which enterprises, SMBs or individuals.
 - The individual can see which company donated the specific \$OCU tokens; marketing.
 - The money donor can see what its donated money was used for.
+
+## To do
+
+- Stablecoin/OCE-token swap
+- Additional features

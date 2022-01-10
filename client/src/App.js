@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import Web3 from "web3-eth";
 
-// const OCUContractAddress = "0x7C9c83383041D8d126C9F2047a15f29bCC96a713";
+// EXAMPLE: const OCUContractAddress = "0x7C9c83383041D8d126C9F2047a15f29bCC96a713";
 const OCUContractAddress = "{ CONTRACT ADDRESS }";
 
 function App() {
@@ -47,43 +47,6 @@ function App() {
 			window.ethereum.on("accountsChanged", () => {
 				window.location.reload();
 			});
-
-			// let options = {
-			// 	filter: {
-			// 		address: [accounts[0]],
-			// 	},
-			// };
-
-			// openCleanUp.events
-			// 	.Mint(options)
-			// 	.on("data", (event) => console.log("Data: ", event))
-			// 	.on("changed", (changed) => console.log("Changed: ", changed))
-			// 	.on("error", (err) => console.log("Err: ", err))
-			// 	.on("connected", (str) => console.log("Connected: ", str));
-
-			// openCleanUp.events
-			// 	.Burn(options)
-
-			// 	.on("data", (event) => console.log("Data: ", event))
-			// 	.on("changed", (changed) => console.log("Changed: ", changed))
-			// 	.on("error", (err) => console.log("Err: ", err))
-			// 	.on("connected", (str) => console.log("Connected: ", str));
-
-			// openCleanUp.events
-			// 	.GrantRole(options)
-
-			// 	.on("data", (event) => console.log("Data: ", event))
-			// 	.on("changed", (changed) => console.log("Changed: ", changed))
-			// 	.on("error", (err) => console.log("Err: ", err))
-			// 	.on("connected", (str) => console.log("Connected: ", str));
-
-			// openCleanUp.events
-			// 	.RevokeRole(options)
-
-			// 	.on("data", (event) => console.log("Data: ", event))
-			// 	.on("changed", (changed) => console.log("Changed: ", changed))
-			// 	.on("error", (err) => console.log("Err: ", err))
-			// 	.on("connected", (str) => console.log("Connected: ", str));
 
 			getTokenInfo();
 			getAccountInfo();
@@ -201,27 +164,6 @@ function App() {
 			console.log(error);
 		}
 	}
-	// function mint() {
-	// 	setTxConfirmed(false);
-	// 	openCleanUp.methods
-	// 		.mint(mintAmount)
-	// 		.estimateGas({ from: accounts[0] })
-	// 		.then((gas) => {
-	// 			let tx = openCleanUp.methods.mint(mintAmount).send({
-	// 				from: accounts[0],
-	// 				gas: gas,
-	// 			});
-	// 			return tx;
-	// 		})
-	// 		.then(() => {
-	// 			setTxConfirmed(true);
-	// 		})
-
-	// 		.catch((error) => {
-	// 			alert("Mint error, see console log");
-	// 			throw new Error(error);
-	// 		});
-	// }
 
 	async function burn() {
 		try {
@@ -240,26 +182,6 @@ function App() {
 			console.log(error);
 		}
 	}
-	// function burn() {
-	// 	setTxConfirmed(false);
-	// 	openCleanUp.methods
-	// 		.burn(burnAmount)
-	// 		.estimateGas({ from: accounts[0] })
-	// 		.then((gas) => {
-	// 			let tx = openCleanUp.methods.burn(burnAmount).send({
-	// 				from: accounts[0],
-	// 				gas: gas,
-	// 			});
-	// 			return tx;
-	// 		})
-	// 		.then(() => {
-	// 			setTxConfirmed(true);
-	// 		})
-	// 		.catch((error) => {
-	// 			alert("Burn error, see console log");
-	// 			throw new Error(error);
-	// 		});
-	// }
 
 	async function grantRole() {
 		console.log(grantRoleType, address);
@@ -281,23 +203,6 @@ function App() {
 			console.log(error);
 		}
 	}
-	// function grantRole() {
-	// 	console.log(grantRoleType, address);
-	// 	openCleanUp.methods
-	// 		.grantRole(grantRoleType, address)
-	// 		.estimateGas({ from: accounts[0] })
-	// 		.then((gas) => {
-	// 			openCleanUp.methods.grantRole(grantRoleType, address).send({
-	// 				from: accounts[0],
-	// 				gas: gas,
-	// 			});
-	// 		})
-
-	// 		.catch((error) => {
-	// 			alert("Grant role error, see console log");
-	// 			throw new Error(error);
-	// 		});
-	// }
 
 	async function grantFoundationRole() {
 		try {
@@ -317,25 +222,6 @@ function App() {
 			console.log(error);
 		}
 	}
-	// function grantFoundationRole() {
-	// 	setTxConfirmed(false);
-	// 	openCleanUp.methods
-	// 		.previewGrantRole()
-	// 		.estimateGas({ from: accounts[0] })
-	// 		.then((gas) => {
-	// 			openCleanUp.methods.previewGrantRole().send({
-	// 				from: accounts[0],
-	// 				gas: gas,
-	// 			});
-	// 		})
-	// 		.then(() => {
-	// 			setTxConfirmed(true);
-	// 		})
-	// 		.catch((error) => {
-	// 			alert("Grant foundation role error, see console log");
-	// 			throw new Error(error);
-	// 		});
-	// }
 
 	async function revokeRole() {
 		console.log(revokeRoleType, address);
@@ -358,22 +244,6 @@ function App() {
 			console.log(error);
 		}
 	}
-	// function revokeRole() {
-	// 	console.log(revokeRoleType, address);
-	// 	openCleanUp.methods
-	// 		.revokeRole(revokeRoleType, address)
-	// 		.estimateGas({ from: accounts[0] })
-	// 		.then((gas) => {
-	// 			openCleanUp.methods.revokeRole(revokeRoleType, address).send({
-	// 				from: accounts[0],
-	// 				gas: gas,
-	// 			});
-	// 		})
-	// 		.catch((error) => {
-	// 			alert("Revoke role error, see console log");
-	// 			throw new Error(error);
-	// 		});
-	// }
 
 	async function distribute() {
 		try {
@@ -395,21 +265,6 @@ function App() {
 			console.log(error);
 		}
 	}
-	// function distribute() {
-	// 	openCleanUp.methods
-	// 		.distribute(address, distributeAmount)
-	// 		.estimateGas({ from: accounts[0] })
-	// 		.then((gas) => {
-	// 			openCleanUp.methods.distribute(address, distributeAmount).send({
-	// 				from: accounts[0],
-	// 				gas: gas,
-	// 			});
-	// 		})
-	// 		.catch((error) => {
-	// 			alert("Distribution error, see console log");
-	// 			throw new Error(error);
-	// 		});
-	// }
 
 	return (
 		<div className="App">

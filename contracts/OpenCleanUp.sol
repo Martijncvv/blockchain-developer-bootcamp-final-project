@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.0;
 
-
-
-// import "./IERC20.sol";
-// import "../node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
-// import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/IERC20.sol";
 import "./OpenCleanUpRoles.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -62,6 +57,7 @@ contract OpenCleanUp is IERC20, OpenCleanUpRoles  {
     receive() external payable {
         emit Log("receive", msg.sender, msg.value, "");
     }
+    
     /// @notice Gives Foundation ability to withdraw Ether from contract
     /// @param to Address to send the funds to
     /// @param amount Amount of Ether to send
