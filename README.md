@@ -21,32 +21,32 @@ https://opencleanup.netlify.app/
 
 In root:
 
-x. npm install
-x. truffle develop
-x. migrate
-x. test
+- npm install
+- truffle develop
+- migrate
+- test
 
 ### Run dApp on Ropsten testnet
 
-x. Connect MetaMask with Ropsten testnet.
-x. Open https://opencleanup.netlify.app/
+- Connect MetaMask with Ropsten testnet.
+- Open https://opencleanup.netlify.app/
 
 ### Run dApp on local server
 
-x. git clone https://github.com/Martijncvv/blockchain-developer-bootcamp-final-project.git
-x. In root, npm install
-x. Open Ganache and run on port 7545
-x. In terminal, truffle migrate --network development
-x. Copy 'OpenCleanUp Contract Address' from terminal and paste after 'OCUContractAddress' in client/src/App.js at line 8
-x. In terminal, cd client
-x. npm install
-x. In browser, connect Metamask with testnet on port 7545
-x. In Metamask, click ‘Import Account’.
-x. In Ganache, click on the key icon to the right of the first wallet. Copy and paste the private key into Metamask.
-x. In terminal, npm start
-x. In browser, go to http://localhost:3000/
-x. Try the dApp
+- git clone https://github.com/Martijncvv/blockchain-developer-bootcamp-final-project.git
+- In root, npm install
+- Open Ganache and run on port 7545
+- In browser, connect Metamask with testnet on port 7545
+- In Metamask, click ‘Import Account’.
+- In Ganache, click on the key icon to the right of the first wallet. Copy and paste the private key into Metamask to import account.
+- In terminal, truffle migrate --network development
+- Copy 'OpenCleanUp Contract Address' from terminal and paste after 'OCUContractAddress' in client/src/App.js at line 8
+- In terminal, cd client
+- npm install
+- In terminal, npm start
+- In browser, go to http://localhost:3000/
 
+truffle console --network development
 ///////
 
 ### Server
