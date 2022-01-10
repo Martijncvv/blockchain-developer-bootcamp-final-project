@@ -5814,10 +5814,16 @@
       "links": {},
       "address": "0xB7c91e0C0F7Bed20B33C6865ec8fB830dF55640a",
       "transactionHash": "0x3826b0ab00aac104d6ce03e5f240c2ccbafc5394a4576fdeb4b713db9451d14d"
+    },
+    "5777": {
+      "events": {},
+      "links": {},
+      "address": "0x10e9CAA2B3f3eE8E54dc623A57ce0171322726B2",
+      "transactionHash": "0xf0e3299d469d1f6a2ac5a4ddbf3fc76140decf851766381d949c93d6a25e8022"
     }
   },
   "schemaVersion": "3.4.3",
-  "updatedAt": "2021-12-31T13:48:50.486Z",
+  "updatedAt": "2022-01-10T17:23:42.475Z",
   "networkType": "ethereum",
   "devdoc": {
     "author": "Martijncvv",

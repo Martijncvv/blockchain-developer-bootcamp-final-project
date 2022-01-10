@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import Web3 from "web3-eth";
-// import { ethers } from "ethers";
-// import OpenCleanup from "./contracts/OpenCleanUp.json";
-// import "bootstrap/dist/css/bootstrap.min.css";
 
-const OCUContractAddress = "0x7C9c83383041D8d126C9F2047a15f29bCC96a713";
+// const OCUContractAddress = "0x7C9c83383041D8d126C9F2047a15f29bCC96a713";
+const OCUContractAddress = "{ CONTRACT ADDRESS }";
 
 function App() {
 	const [loaded, setLoaded] = useState(false);
@@ -611,12 +609,14 @@ function App() {
 }
 
 export default App;
-
-// account 1
-// 0xFB76057e610aC2746B68E23501319BbA8EF7cCDc
+// main account
+// 0x56d8Bf89371Ba9eD001a27aC7A1fAB640Afe4f91
 
 // account 2
-// 0xFd4689E3D71EcF99d65AA22E73447f6C3940b603
+// 0xFB76057e610aC2746B68E23501319BbA8EF7cCDc
 
 // account 3
+// 0xFd4689E3D71EcF99d65AA22E73447f6C3940b603
+
+// account 4
 // 0xDD5c09e521Cb45cCB66Ef9D239D8b2724ac62530
