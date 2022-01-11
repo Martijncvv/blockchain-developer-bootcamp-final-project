@@ -3,7 +3,7 @@ import "./App.css";
 import Web3 from "web3-eth";
 
 // EXAMPLE: const OCUContractAddress = "0x7C9c83383041D8d126C9F2047a15f29bCC96a713";
-const OCUContractAddress = "0xa6D1940a688819a38d42C4B140b914fE8cE8950e";
+const OCUContractAddress = "{ CONTRACT ADDRESS }";
 
 function App() {
 	const [loaded, setLoaded] = useState(false);
