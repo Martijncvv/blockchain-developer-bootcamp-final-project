@@ -2,6 +2,10 @@
 
 ### An open ecosystem to incentivize individuals to clean the environment
 
+<p align="center"> 
+  <img src="OpenCleanUp-Foundation-page.png" alt="OpenCleanUp Foundation page" width="700" >
+</p>
+
 ## Project Description
 
 ### Problem
