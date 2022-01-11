@@ -43,8 +43,8 @@ The `OpenCleanUp` contract inherits the `IERC20` contract from OpenZeppelin and 
 
 ### OpenCleanUpRoles Contract
 
-- Stored 'role options' as `bytes32`s instead of `strings`.
 - Added `view` to `RoleOf()` function.
+- Stored 'role options' as `bytes32`s instead of `strings`.
 - Wrote literal values instead of computed ones:
 
   `bytes32 public constant FOUNDATION = keccak256(abi.encodePacked("FOUNDATION"));`

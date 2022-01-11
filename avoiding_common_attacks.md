@@ -2,7 +2,7 @@
 
 ## Integer Over / Underflow (SWC-101)
 
-- The SafeMath library is shipped with Solidity 0.8.x.
+- The SafeMath library is shipped with `Solidity 0.8.x`.
 
 ## Floating Pragma (SWC-103)
 
@@ -19,3 +19,7 @@
 ## Proper use of call and delegatecall instead of send, transfer
 
 - The function `withdraw()` uses the `.cal` statement to withdraw Ether.
+
+## Sensitive Data
+
+- Sensitive data is stored in an env. file and added to the .gitignore file.
